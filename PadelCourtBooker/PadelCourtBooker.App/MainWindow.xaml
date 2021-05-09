@@ -1,0 +1,113 @@
+﻿<Window x:Class="PadelCourtBooker.App.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:PadelCourtBooker.App"
+        xmlns:userControls="clr-namespace:PadelCourtBooker.App.UserControls"
+        xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+        mc:Ignorable="d"
+        Title="Padel Court Booker. Sleep well :-)" Height="850" Width="800">
+  <Window.Resources>
+    <local:PadelCourtConverter x:Key="PadelCourtConverter"></local:PadelCourtConverter>
+  </Window.Resources>
+
+  <DockPanel>
+    <Menu DockPanel.Dock="Top">
+      <MenuItem Header="Actions">
+        <MenuItem Header="Verify Login" Command="{Binding CmdLogin}"></MenuItem>
+      </MenuItem>
+      <MenuItem Header="Console">
+        <MenuItem Header="Clear" Command="{Binding CmdClearConsole}"></MenuItem>
+        <MenuItem Header="Copy content to clipboard" Command="{Binding CmdCopyConsoleToClipboard}"></MenuItem>
+      </MenuItem>
+      <MenuItem Header="Settings">
+        <MenuItem Header="Credentials" Command="{Binding CmdEnterCredentials}"></MenuItem>
+      </MenuItem>
+    </Menu>
+
+    <Grid Loaded="Grid_Loaded">
+      <Grid.RowDefinitions>
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="Auto" />
+        <RowDefinition Height="*" />
+      </Grid.RowDefinitions>
+      <GroupBox Grid.Row="0" Header="Booking Info">
+        <UniformGrid Columns="2" Rows="4">
+          <Label>Court</Label>
+          <ComboBox ItemsSource="{Binding AvailableCourts}" SelectedItem="{Binding BookingCourt, Mode=TwoWay}" >
+            <ComboBox.ItemTemplate>
+              <DataTemplate>
+                <TextBlock Text="{Binding Converter={StaticResource PadelCourtConverter}}"/>
+              </DataTemplate>
+            </ComboBox.ItemTemplate>
+
+          </ComboBox>
+          <Label>Booking Date</Label>
+          <xctk:DateTimePicker x:Name="BookingDatePicker" AutoCloseCalendar="True"  Value="{Binding BookingDate}" Format="LongDate" TimePickerVisibility="Collapsed"></xctk:DateTimePicker>
+          <Label>Time</Label>
+          <Grid Width="100" HorizontalAlignment="Left">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*"/>
+              <ColumnDefinition Width="Auto"/>
+              <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <ComboBox Grid.Column="0" ItemsSource="{Binding AvailableHours}" SelectedItem="{Binding BookingHour, Mode=TwoWay}" ItemStringFormat="D2"></ComboBox>
+            <Label Grid.Column="1">:</Label>
+            <ComboBox Grid.Column="2" ItemsSource="{Binding AvailableMinutes}" SelectedItem="{Binding BookingMinutes, Mode=TwoWay}" ItemStringFormat="D2"></ComboBox>
+          </Grid>
+          <Label/>
+          <Button Command="{Binding CmdGetTimeSlotInfo}">Check availibility</Button>
+        </UniformGrid>
+      </GroupBox>
+
+      <GroupBox Grid.Row="2" Header="Court availability">
+        <ListView  ItemsSource="{Binding AvailableTimeSlots}" SelectedItem="{Binding SelectedTimeSlot, Mode=TwoWay}"></ListView>
+      </GroupBox>
+
+      <GroupBox Grid.Row="3" Header="Book Court">
+        <Grid>
+          <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+          </Grid.RowDefinitions>
+          <StackPanel>
+            <RadioButton IsChecked="{Binding InstantBooking, Mode=TwoWay}" IsEnabled="{Binding TimeSlotsAvailable}">Book now</RadioButton>
+            <RadioButton IsChecked="{Binding DelayedBooking, Mode=TwoWay}" IsEnabled="{Binding TimeSlotsAvailable}">Delayed booking</RadioButton>
+          </StackPanel>
+
+          <!-- Delayed booking time -->
+          <Grid Grid.Row="1" Width="100" HorizontalAlignment="Left">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*"/>
+              <ColumnDefinition Width="Auto"/>
+              <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <xctk:IntegerUpDown  Grid.Column="0" Value="{Binding DelayedBookingHour, Mode=TwoWay}" Minimum="0" Maximum="23" FormatString="D2"></xctk:IntegerUpDown>
+            <Label Grid.Column="1">:</Label>
+            <xctk:IntegerUpDown Grid.Column="2" Value="{Binding DelayedBookingMinutes, Mode=TwoWay}" Maximum="59" Minimum="0" FormatString="D2"></xctk:IntegerUpDown>
+          </Grid>
+
+          <StackPanel Grid.Row="2" Orientation="Horizontal">
+            <Label>Countdown: </Label>
+            <TextBlock Text="{Binding DelayedBookingCountDown}"></TextBlock>
+          </StackPanel>
+
+          <CheckBox Grid.Row="3" IsChecked="{Binding ShutDownComputer}">Shutdown PC on successful booking</CheckBox>
+
+          <StackPanel Grid.Row="4" Orientation="Horizontal">
+            <Button Command="{Binding CmdBookCourt}" Width="300">Book court</Button>
+            <Button Command="{Binding CmdCancelDelayedBooking}" Width="300">Cancel delayed booking</Button>
+          </StackPanel>
+        </Grid>
+      </GroupBox>
+
+      <userControls:ConsoleUserControl Grid.Row="4"></userControls:ConsoleUserControl>
+    </Grid>
+  </DockPanel>
+</Window>
