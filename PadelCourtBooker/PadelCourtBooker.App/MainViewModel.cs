@@ -28,6 +28,7 @@ namespace PadelCourtBooker.App
     private DispatcherTimer _delayedBookingTimer = null;
     private string _delayedBookingCountDown;
     private bool _shutDownComputer;
+    private DelayedBookingInfo _delayedBookingInfo;
 
     public MainViewModel()
     {
@@ -213,6 +214,7 @@ namespace PadelCourtBooker.App
       {
         _delayedBookingTimer.Stop();
         _delayedBookingTimer = null;
+        _delayedBookingInfo = null;
 
         DelayedBookingCountDown = string.Empty;
 
@@ -235,6 +237,7 @@ namespace PadelCourtBooker.App
       }
 
       // delayed booking
+      _delayedBookingInfo = new DelayedBookingInfo();
 
       // make sure time is in the future
       _delayedBookingTime = DateTime.Today.AddHours(DelayedBookingHour).AddMinutes(DelayedBookingMinutes);
@@ -260,21 +263,45 @@ namespace PadelCourtBooker.App
     {
       if (_delayedBookingTime < DateTime.Now)
       {
-        _delayedBookingTimer.Stop();
-        _delayedBookingTimer = null;
-
         // proceed with booking
-        _consoleService.WriteStartAction("Delayed booking started");
+        if (_delayedBookingInfo.Attempts == 0)
+        {
+          _consoleService.WriteStartAction("Delayed booking started");
+        }
 
         if (BookCourtNow())
         {
+          _delayedBookingTimer.Stop();
+          _delayedBookingTimer = null;
+
           if (ShutDownComputer)
           {
             _consoleService.WriteWarning("Computer will shutdown in 1 minute!!!");
             // shutdown PC in 1 minute
             Task.Delay(1000).ContinueWith(_ => AppUtilities.ShutdownComputer());
           }
+
+          return;
         }
+
+        // booking was not successful, try again!
+        _delayedBookingInfo.Attempts++;
+
+        // how long have we been retrying?
+        var retryTimeSpan = DateTime.Now - _delayedBookingTime;
+        if (retryTimeSpan.TotalMinutes >= 15)
+        {
+          _consoleService.WriteError("Failed to book court. Giving up after 15 minutes. Sorry...");
+          _delayedBookingTimer.Stop();
+          _delayedBookingTimer = null;
+        }
+
+        // display a message every 10 attempts
+        if (_delayedBookingInfo.Attempts % 10 == 0)
+        {
+          _consoleService.WriteLine($"  Failed attempts: {_delayedBookingInfo.Attempts}");
+        }
+
         return;
       }
 

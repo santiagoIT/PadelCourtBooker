@@ -10,12 +10,18 @@ namespace PadelCourtBooker.App.Core
   {
     public bool Execute()
     {
+      var bookingSessionService = App.Kernel.Get<IBookingSessionService>();
+      
+      // check if session is still valid
+      if (bookingSessionService.SessionStillValid())
+      {
+        return true;
+      }
+
       var consoleService = App.Kernel.Get<IConsoleOutputService>();
       consoleService.WriteStartAction("User authentication");
 
       var credentialService = App.Kernel.Get<ICredentialService>();
-      var bookingSessionService = App.Kernel.Get<IBookingSessionService>();
-
       bookingSessionService.Reset();
 
       var client = new RestClient(AppConstants.Host);
@@ -54,7 +60,7 @@ namespace PadelCourtBooker.App.Core
       }
 
       // store session cookies
-      bookingSessionService.Cookies = response.Cookies;
+      bookingSessionService.SessionStarted(response.Cookies);
       consoleService.WriteSuccess("User authentication successful.");
 
       return true;
