@@ -13,9 +13,15 @@ namespace PadelCourtBooker.App.Core
     {
       _consoleService = App.Kernel.Get<IConsoleOutputService>();
     }
+
+    public bool Silent { get; set; }
+
     public bool Execute(TimeSlotInfo timeSlot)
     {
-      _consoleService.WriteStartAction("Booking court");
+      if (!Silent)
+      {
+        _consoleService.WriteStartAction("Booking court");
+      }
 
       var bookingSessionService = App.Kernel.Get<IBookingSessionService>();
 
@@ -57,6 +63,12 @@ namespace PadelCourtBooker.App.Core
           _consoleService.WriteSuccess("Court booked.");
           return true;
         }
+      }
+
+      if (!Silent)
+      {
+        _consoleService.WriteError("Failed to book court. Most likely court is not yet bookable.");
+        _consoleService.WriteError($"  HttpStatusCode: {response.StatusCode}");
       }
 
       return false;

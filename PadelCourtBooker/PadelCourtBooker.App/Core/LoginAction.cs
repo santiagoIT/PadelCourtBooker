@@ -8,12 +8,12 @@ namespace PadelCourtBooker.App.Core
 {
   class LoginAction : ILoginAction
   {
-    public bool Execute()
+    public bool Execute(bool forceLogin)
     {
       var bookingSessionService = App.Kernel.Get<IBookingSessionService>();
       
       // check if session is still valid
-      if (bookingSessionService.SessionStillValid())
+      if (!forceLogin && bookingSessionService.SessionStillValid())
       {
         return true;
       }

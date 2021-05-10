@@ -5,9 +5,11 @@
     public string Token { get; set; }
     public string Description { get; set; }
 
+    public PadelCourt Court { get; set; }
+
     public override string ToString()
     {
-      return Description;
+      return $"{AppUtilities.GetDescriptionFor(Court)} - {Description}";
     }
   }
 }

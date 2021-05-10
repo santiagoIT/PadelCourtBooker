@@ -21,7 +21,7 @@ namespace PadelCourtBooker.App
       this.BookingDatePicker.Minimum = DateTime.Today;
     }
 
-    private void Grid_Loaded(object sender, RoutedEventArgs e)
+    private void Window_Loaded(object sender, RoutedEventArgs e)
     {
       var consoleService = App.Kernel.Get<IConsoleOutputService>();
       var version = Assembly.GetExecutingAssembly().GetName().Version;

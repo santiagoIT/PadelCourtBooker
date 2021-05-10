@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Net;
 using Newtonsoft.Json;
 using Ninject;
 using PadelCourtBooker.App.Services;
@@ -9,7 +10,7 @@ namespace PadelCourtBooker.App.Core
 {
   public class ObtainTimeSlotTokenAction : IObtainTimeSlotTokenAction
   {
-    public IList<TimeSlotInfo> Execute(DateTime date, PadelCourt court)
+    public IList<TimeSlotInfo> Execute(DateTime date, PadelCourt court, bool silent)
     {
       // json payload format
       // { "idCuadro":4,"idRecurso":"16","idmodalidad":8,"fecha":"6/5/2021","hora":"09:00"}
@@ -24,12 +25,25 @@ namespace PadelCourtBooker.App.Core
       };
 
       var consoleService = App.Kernel.Get<IConsoleOutputService>();
-      consoleService.WriteStartAction("Retrieve time slot info");
+      if (!silent)
+      {
+        consoleService.WriteStartAction("Retrieve time slot info");
+      }
 
       var client = new RestClient(AppConstants.Host);
       var request = new RestRequest(AppConstants.ObtainTimeSlotInformationUrl, DataFormat.Json);
       request.AddJsonBody(payload);
       var response = client.Post(request);
+
+      if (response.StatusCode != HttpStatusCode.OK)
+      {
+        if (!silent)
+        {
+          consoleService.WriteError($"Failed to retrieve time slot information. {response.StatusCode}");
+        }
+
+        return null;
+      }
 
       dynamic test = JsonConvert.DeserializeObject(response.Content);
       var test2 = test.d.Opciones;
@@ -41,7 +55,8 @@ namespace PadelCourtBooker.App.Core
         var timeSlot = new TimeSlotInfo
         {
           Token = timeSlotJson.Token,
-          Description = timeSlotJson.Descripcion
+          Description = timeSlotJson.Descripcion,
+          Court = court
         };
 
         timeSlots.Add(timeSlot);
@@ -49,13 +64,17 @@ namespace PadelCourtBooker.App.Core
 
       var courtStr = AppUtilities.GetDescriptionFor(court);
 
-      if (timeSlots.Count == 0)
+      if (!silent)
       {
-        consoleService.WriteError($"{courtStr} is not available on {date.ToLongDateString()} at {date.Hour:D2}:{date.Minute:D2}. :-(");
-      }
-      else
-      {
-        consoleService.WriteSuccess($"{courtStr} is available. :-)");
+        if (timeSlots.Count == 0)
+        {
+          consoleService.WriteError(
+            $"{courtStr} is not available on {date.ToLongDateString()} at {date.Hour:D2}:{date.Minute:D2}. :-(");
+        }
+        else
+        {
+          consoleService.WriteSuccess($"{courtStr} is available. :-)");
+        }
       }
 
       return timeSlots;

@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Input;
@@ -9,6 +11,7 @@ using GalaSoft.MvvmLight.CommandWpf;
 using Ninject;
 using PadelCourtBooker.App.Core;
 using PadelCourtBooker.App.Services;
+using PadelCourtBooker.App.ViewModels;
 
 namespace PadelCourtBooker.App
 {
@@ -17,9 +20,8 @@ namespace PadelCourtBooker.App
     private DateTime _bookingDate;
     private int _bookingHour;
     private int _bookingMinutes;
-    private PadelCourt _bookingCourt;
     private bool _instantBooking;
-    private TimeSlotInfo _selectedTimeSlot;
+    private TimeSlotInfoViewModel _selectedTimeSlot;
     private int _delayedBookingHour = 23;
     private int _delayedBookingMinutes = 59;
     private DateTime _delayedBookingTime;
@@ -29,12 +31,13 @@ namespace PadelCourtBooker.App
     private string _delayedBookingCountDown;
     private bool _shutDownComputer;
     private DelayedBookingInfo _delayedBookingInfo;
+    private int _gameDuration = 90;
 
     public MainViewModel()
     {
       RegisterCommands();
 
-      BookingDate = DateTime.Now.AddDays(7);
+      BookingDate = DateTime.Now.AddDays(8);
 
       for (int i = 6; i < 24; i++)
       {
@@ -44,14 +47,12 @@ namespace PadelCourtBooker.App
       AvailableMinutes.Add(0);
       AvailableMinutes.Add(30);
 
-      AvailableCourts.Add(PadelCourt.Court1);
-      AvailableCourts.Add(PadelCourt.Court2);
-      AvailableCourts.Add(PadelCourt.Court3);
-      AvailableCourts.Add(PadelCourt.Court4);
+      AvailableGameDurations.Add(60);
+      AvailableGameDurations.Add(90);
+      AvailableGameDurations.Add(120);
 
       BookingHour = 8;
       BookingMinutes = 0;
-      BookingCourt = PadelCourt.Court1;
 
       _consoleService = App.Kernel.Get<IConsoleOutputService>();
 
@@ -81,22 +82,21 @@ namespace PadelCourtBooker.App
       set { _bookingMinutes = value; RaisePropertyChanged();}
     }
 
-    public PadelCourt BookingCourt
-    {
-      get => _bookingCourt;
-      set { _bookingCourt = value; RaisePropertyChanged();}
-    }
 
     public int DelayedBookingHour
     {
       get => _delayedBookingHour;
-      set { _delayedBookingHour = value; RaisePropertyChanged();}
+      set { 
+        _delayedBookingHour = value;
+        RaisePropertyChanged();}
     }
 
     public int DelayedBookingMinutes
     {
       get => _delayedBookingMinutes;
-      set { _delayedBookingMinutes = value; RaisePropertyChanged();}
+      set {
+        _delayedBookingMinutes = value;
+        RaisePropertyChanged();}
     }
 
     public string DelayedBookingCountDown
@@ -105,13 +105,19 @@ namespace PadelCourtBooker.App
       set { _delayedBookingCountDown = value; RaisePropertyChanged();}
     }
 
+    public int GameDuration
+    {
+      get => _gameDuration;
+      set { _gameDuration = value; RaisePropertyChanged();}
+    }
+
     public ObservableCollection<int> AvailableHours { get; } = new ObservableCollection<int>();
 
     public ObservableCollection<int> AvailableMinutes { get; } = new ObservableCollection<int>();
 
-    public ObservableCollection<PadelCourt> AvailableCourts { get; } = new ObservableCollection<PadelCourt>();
+    public ObservableCollection<TimeSlotInfoViewModel> AvailableTimeSlots { get; } = new ObservableCollection<TimeSlotInfoViewModel>();
 
-    public ObservableCollection<TimeSlotInfo> AvailableTimeSlots { get; } = new ObservableCollection<TimeSlotInfo>();
+    public ObservableCollection<int> AvailableGameDurations { get; } = new ObservableCollection<int>();
 
     public bool InstantBooking
     {
@@ -125,7 +131,7 @@ namespace PadelCourtBooker.App
       set { _instantBooking = !value; RaisePropertyChanged();}
     }
 
-    public TimeSlotInfo SelectedTimeSlot
+    public TimeSlotInfoViewModel SelectedTimeSlot
     {
       get => _selectedTimeSlot;
       set { _selectedTimeSlot = value; RaisePropertyChanged();}
@@ -157,17 +163,55 @@ namespace PadelCourtBooker.App
 
     public ICommand CmdCancelDelayedBooking { get; private set; }
 
+    public ICommand CmdMoveUp { get; private set; }
+    public ICommand CmdMoveDown { get; private set; }
+
     private void RegisterCommands()
     {
       CmdGetTimeSlotInfo = new RelayCommand(() => CmdGetTimeSlotInfoExecute());
       CmdEnterCredentials = new RelayCommand(() => CmdEnterCredentialsExecute());
       CmdLogin = new RelayCommand(() => CmdLoginExecute());
-      CmdBookCourt = new RelayCommand(() => CmdBookCourtExecute(), () => SelectedTimeSlot != null);
+      CmdBookCourt = new RelayCommand(() => CmdBookCourtExecute(), () => AvailableTimeSlots.Count > 0);
       CmdCancelDelayedBooking = new RelayCommand(() => CmdCancelDelayedBookingExecute(), () => _delayedBookingTimer != null);
 
       CmdClearConsole = new RelayCommand(() => CmdClearConsoleExecute());
       CmdCopyConsoleToClipboard = new RelayCommand(() => CmdCopyConsoleToClipboardExecute());
 
+      CmdMoveUp = new RelayCommand(() => CmdMoveUpExecute(), () =>
+      {
+        return SelectedTimeSlot != null && AvailableTimeSlots.IndexOf(SelectedTimeSlot) > 0;
+      });
+      CmdMoveDown = new RelayCommand(() => CmdMoveDownExecute(), () =>
+      {
+        return SelectedTimeSlot != null && AvailableTimeSlots.Last() != SelectedTimeSlot;
+      });
+    }
+
+    private void CmdMoveDownExecute()
+    {
+      var index = AvailableTimeSlots.IndexOf(SelectedTimeSlot);
+      if (index >= AvailableTimeSlots.Count - 1)
+      {
+        return;
+      }
+
+      var currentSlot = SelectedTimeSlot;
+      AvailableTimeSlots.RemoveAt(index);
+      AvailableTimeSlots.Insert(index + 1, currentSlot);
+      SelectedTimeSlot = currentSlot;
+    }
+
+    private void CmdMoveUpExecute()
+    {
+      var index = AvailableTimeSlots.IndexOf(SelectedTimeSlot);
+      if (index < 1)
+      {
+        return;
+      }
+      var currentSlot = SelectedTimeSlot;
+      AvailableTimeSlots.RemoveAt(index);
+      AvailableTimeSlots.Insert(index - 1, currentSlot);
+      SelectedTimeSlot = currentSlot;
     }
 
     private void CmdClearConsoleExecute()
@@ -186,16 +230,69 @@ namespace PadelCourtBooker.App
 
       var bookingTime = BookingDate.Date.Add(new TimeSpan(BookingHour, BookingMinutes, 0));
 
-      var action = new ObtainTimeSlotTokenAction();
-      var timeSlots = action.Execute(bookingTime, BookingCourt);
-      if (timeSlots != null)
+      var filter = $"{GameDuration}'";
+
+      var availableCourts = Enum.GetValues(typeof(PadelCourt)).Cast<PadelCourt>();
+
+      foreach (var court in availableCourts)
       {
-        foreach (var timeSlotInfo in timeSlots)
+        var action = new ObtainTimeSlotTokenAction();
+        var timeSlots = action.Execute(bookingTime, court, false);
+        if (timeSlots != null)
         {
-          AvailableTimeSlots.Add(timeSlotInfo);
-          if (timeSlotInfo.Description.Contains("90"))
+          foreach (var timeSlotInfo in timeSlots)
           {
-            SelectedTimeSlot = timeSlotInfo;
+            if (!timeSlotInfo.Description.Contains(filter))
+            {
+              continue;
+            }
+
+            var vm = new TimeSlotInfoViewModel(timeSlotInfo, this);
+
+            if (AvailableTimeSlots.Count == 0)
+            {
+              AvailableTimeSlots.Add(vm);
+            }
+            else
+            {
+              switch (court)
+              {
+                // goes first
+                case PadelCourt.Court3:
+                {
+                  AvailableTimeSlots.Insert(0, vm);
+                  break;
+                }
+
+                // goes last
+                case PadelCourt.Court4:
+                {
+                  AvailableTimeSlots.Add(vm);
+                  break;
+                }
+
+                case PadelCourt.Court1:
+                case PadelCourt.Court2:
+                {
+                  switch (AvailableTimeSlots.Last().TimeSlotInfo.Court)
+                  {
+                    case PadelCourt.Court4:
+                    {
+                      AvailableTimeSlots.Insert(AvailableTimeSlots.Count -1, vm);
+                          break;
+                    }
+                    default:
+                    {
+                      AvailableTimeSlots.Add(vm);
+                      break;
+                    }
+                    }
+                  
+                  break;
+                }
+
+              }
+            }
           }
         }
       }
@@ -214,25 +311,25 @@ namespace PadelCourtBooker.App
       {
         _delayedBookingTimer.Stop();
         _delayedBookingTimer = null;
-        _delayedBookingInfo = null;
 
         DelayedBookingCountDown = string.Empty;
 
         _consoleService.WriteWarning("Delayed booking canceled");
       }
+      _delayedBookingInfo.Busy = false;
     }
 
     private void CmdLoginExecute()
     {
       var loginAction = new LoginAction();
-      loginAction.Execute();
+      loginAction.Execute(true);
     }
 
     private void CmdBookCourtExecute()
     {
       if (InstantBooking)
       {
-        BookCourtNow();
+        BookCourtNow(true);
         return;
       }
 
@@ -248,6 +345,8 @@ namespace PadelCourtBooker.App
         return;
       }
 
+      RefreshDelayedBookingTime();
+
       // start timer
       _consoleService.WriteStartAction("Delayed booking countdown started");
       _delayedBookingTimer = new DispatcherTimer
@@ -261,6 +360,11 @@ namespace PadelCourtBooker.App
 
     private void _delayedBookingTimer_Tick(object sender, EventArgs e)
     {
+      if (_delayedBookingInfo.Busy)
+      {
+        return;
+      }
+
       if (_delayedBookingTime < DateTime.Now)
       {
         // proceed with booking
@@ -269,20 +373,29 @@ namespace PadelCourtBooker.App
           _consoleService.WriteStartAction("Delayed booking started");
         }
 
-        if (BookCourtNow())
+        _delayedBookingInfo.Busy = true;
+        try
         {
-          _delayedBookingTimer.Stop();
-          _delayedBookingTimer = null;
-
-          if (ShutDownComputer)
+          if (BookCourtNow(false))
           {
-            _consoleService.WriteWarning("Computer will shutdown in 1 minute!!!");
-            // shutdown PC in 1 minute
-            Task.Delay(1000).ContinueWith(_ => AppUtilities.ShutdownComputer());
-          }
+            _delayedBookingTimer.Stop();
+            _delayedBookingTimer = null;
 
-          return;
+            if (ShutDownComputer)
+            {
+              _consoleService.WriteWarning("Computer will shutdown in 1 minute!!!");
+              // shutdown PC in 1 minute
+              Task.Delay(1000).ContinueWith(_ => AppUtilities.ShutdownComputer());
+            }
+
+            return;
+          }
         }
+        finally
+        {
+          _delayedBookingInfo.Busy = false;
+        }
+       
 
         // booking was not successful, try again!
         _delayedBookingInfo.Attempts++;
@@ -307,20 +420,65 @@ namespace PadelCourtBooker.App
 
       var timeSpan = _delayedBookingTime - DateTime.Now;
       DelayedBookingCountDown = ($"{timeSpan.Hours}:{timeSpan.Minutes:D2}:{timeSpan.Seconds:D2}");
+
+      if (!_delayedBookingInfo.LogInCalled && timeSpan.TotalSeconds < 15)
+      {
+        _delayedBookingInfo.Busy = true;
+        try
+        {
+          var loginAction = new LoginAction();
+          if (loginAction.Execute(true))
+          {
+            _delayedBookingInfo.LogInCalled = true;
+          }
+        }
+        finally
+        {
+          _delayedBookingInfo.Busy = false;
+        }
+        
+      }
     }
 
     #endregion
 
-    private bool BookCourtNow()
+    private void RefreshDelayedBookingTime()
+    {
+      if (_delayedBookingTime > DateTime.Now)
+      {
+        var timeSpan = _delayedBookingTime - DateTime.Now;
+
+        DelayedBookingCountDown = ($"{timeSpan.Hours}:{timeSpan.Minutes:D2}:{timeSpan.Seconds:D2}");
+      }
+      else
+      {
+        DelayedBookingCountDown = "--";
+      }
+    }
+
+    private bool BookCourtNow(bool instantBooking)
     {
       var loginAction = new LoginAction();
-      if (!loginAction.Execute())
+      if (!loginAction.Execute(false))
       {
         return false;
       }
 
-      var bookAction = new BookAction();
-      return bookAction.Execute(SelectedTimeSlot);
+      foreach (var timeSlot in AvailableTimeSlots)
+      {
+        var bookAction = new BookAction();
+        if (!instantBooking)
+        {
+          bookAction.Silent = true;
+        }
+
+        if (bookAction.Execute(SelectedTimeSlot.TimeSlotInfo))
+        {
+          return true;
+        }
+      }
+
+      return false;
     }
   }
 }

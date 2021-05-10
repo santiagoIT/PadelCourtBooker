@@ -14,6 +14,18 @@ namespace PadelCourtBooker.App.Services
 
     public void WriteLine(string msg)
     {
+      if (!Console.Dispatcher.CheckAccess())
+      {
+        Console.Dispatcher.Invoke(() => { WriteLineInternal(msg); });
+      }
+      else
+      {
+        WriteLineInternal(msg);
+      }
+    }
+
+    private void WriteLineInternal(string msg)
+    {
       var run = new Run(msg + Environment.NewLine)
       {
         Foreground = Brushes.Snow
@@ -23,6 +35,18 @@ namespace PadelCourtBooker.App.Services
     }
 
     public void WriteError(string msg)
+    {
+      if (!Console.Dispatcher.CheckAccess())
+      {
+        Console.Dispatcher.Invoke(() => { WriteErrorInternal(msg); });
+      }
+      else
+      {
+        WriteErrorInternal(msg);
+      }
+    }
+
+    private void WriteErrorInternal(string msg)
     {
       var run = new Run(msg + Environment.NewLine)
       {
@@ -34,6 +58,19 @@ namespace PadelCourtBooker.App.Services
 
     public void WriteWarning(string msg)
     {
+      if (!Console.Dispatcher.CheckAccess())
+      {
+        Console.Dispatcher.Invoke(() => { WriteWarningInternal(msg); });
+      }
+      else
+      {
+        WriteWarningInternal(msg);
+      }
+
+    }
+
+    private void WriteWarningInternal(string msg)
+    {
       var run = new Run(msg + Environment.NewLine)
       {
         Foreground = Brushes.Gold
@@ -44,6 +81,18 @@ namespace PadelCourtBooker.App.Services
 
     public void WriteSuccess(string msg)
     {
+      if (!Console.Dispatcher.CheckAccess())
+      {
+        Console.Dispatcher.Invoke(() => { WriteSuccessInternal(msg); });
+      }
+      else
+      {
+        WriteSuccessInternal(msg);
+      }
+    }
+
+    private void WriteSuccessInternal(string msg)
+    {
       var run = new Run(msg + Environment.NewLine)
       {
         Foreground = Brushes.Green
@@ -53,6 +102,18 @@ namespace PadelCourtBooker.App.Services
     }
 
     public void WriteStartAction(string msg)
+    {
+      if (!Console.Dispatcher.CheckAccess())
+      {
+        Console.Dispatcher.Invoke(() => { WriteStartActionInternal(msg); });
+      }
+      else
+      {
+        WriteStartActionInternal(msg);
+      }
+    }
+
+    private void WriteStartActionInternal(string msg)
     {
       WriteLine(string.Empty);
 
@@ -69,19 +130,26 @@ namespace PadelCourtBooker.App.Services
 
     public void Clear()
     {
-      Console.OutputText.Text = String.Empty;
+      Console.Dispatcher.Invoke(() =>
+      {
+        Console.OutputText.Text = String.Empty;
+      });
     }
 
     public void CopyToClipboard()
     {
-      try
+      Console.Dispatcher.Invoke(() =>
       {
-        Clipboard.SetText(Console.OutputText.Text);
-      }
-      catch (Exception e)
-      {
-        MessageBox.Show($"Failed to copy text to clipboard.\n\r{e.Message}");
-      }
+        try
+        {
+          Clipboard.SetText(Console.OutputText.Text);
+        }
+        catch (Exception e)
+        {
+          MessageBox.Show($"Failed to copy text to clipboard.\n\r{e.Message}");
+        }
+      });
+
     }
   }
 }

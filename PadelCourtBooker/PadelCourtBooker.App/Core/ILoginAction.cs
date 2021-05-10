@@ -6,6 +6,6 @@ namespace PadelCourtBooker.App.Core
 {
   interface ILoginAction
   {
-    bool Execute();
+    bool Execute(bool forceLogin);
   }
 }

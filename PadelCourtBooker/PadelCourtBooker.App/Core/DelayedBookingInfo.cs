@@ -6,5 +6,9 @@ namespace PadelCourtBooker.App.Core
   {
     public int Attempts { get; set; }
     public DateTime StartedAt { get; set; }
+
+    public bool LogInCalled { get; set; }
+
+    public bool Busy { get; set; }
   }
 }
