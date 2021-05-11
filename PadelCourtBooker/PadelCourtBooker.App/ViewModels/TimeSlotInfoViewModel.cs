@@ -1,4 +1,5 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.ObjectModel;
 using System.Windows.Input;
 using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.CommandWpf;
@@ -24,6 +25,8 @@ namespace PadelCourtBooker.App.ViewModels
     public string DisplayName => TimeSlotInfo.ToString();
 
     public TimeSlotInfo TimeSlotInfo { get; }
+
+    public DateTime BookingTime { get; set; }
 
     public ICommand CmdDelete { get; private set; }
 

@@ -5,7 +5,7 @@ using PadelCourtBooker.App.UserControls;
 
 namespace PadelCourtBooker.App.Services
 {
-  interface IConsoleOutputService
+  public interface IConsoleOutputService
   {
     ConsoleUserControl Console { get; set; }
     void WriteLine(string msg);

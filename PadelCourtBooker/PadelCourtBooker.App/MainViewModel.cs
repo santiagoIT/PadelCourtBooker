@@ -247,7 +247,10 @@ namespace PadelCourtBooker.App
               continue;
             }
 
-            var vm = new TimeSlotInfoViewModel(timeSlotInfo, this);
+            var vm = new TimeSlotInfoViewModel(timeSlotInfo, this)
+            {
+              BookingTime = bookingTime
+            };
 
             if (AvailableTimeSlots.Count == 0)
             {
@@ -464,17 +467,31 @@ namespace PadelCourtBooker.App
         return false;
       }
 
-      foreach (var timeSlot in AvailableTimeSlots)
+      var preferredCourt = AvailableTimeSlots.FirstOrDefault();
+      if (null == preferredCourt)
       {
-        var bookAction = new BookAction();
-        if (!instantBooking)
-        {
-          bookAction.Silent = true;
-        }
+        return false;
+      }
 
-        if (bookAction.Execute(SelectedTimeSlot.TimeSlotInfo))
+      var bookAction = new BookAction();
+      if (!instantBooking)
+      {
+        bookAction.Silent = true;
+      }
+
+      if (bookAction.Execute(preferredCourt.TimeSlotInfo))
+      {
+        return true;
+      }
+
+      if (!instantBooking)
+      {
+        // check if the court is still available
+        var checkAvailabilityAction = new CheckCourtAvailabilityAction();
+        if (!checkAvailabilityAction.Execute(preferredCourt.BookingTime, preferredCourt.TimeSlotInfo.Court, true))
         {
-          return true;
+          // if court is not available, then stop trying this timeslot
+          AvailableTimeSlots.RemoveAt(0);
         }
       }
 

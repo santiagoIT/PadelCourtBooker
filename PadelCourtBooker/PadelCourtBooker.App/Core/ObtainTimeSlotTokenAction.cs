@@ -8,49 +8,24 @@ using RestSharp;
 
 namespace PadelCourtBooker.App.Core
 {
-  public class ObtainTimeSlotTokenAction : IObtainTimeSlotTokenAction
+  public class ObtainTimeSlotTokenAction : TimeSlotActionBase, IObtainTimeSlotTokenAction
   {
     public IList<TimeSlotInfo> Execute(DateTime date, PadelCourt court, bool silent)
     {
-      // json payload format
-      // { "idCuadro":4,"idRecurso":"16","idmodalidad":8,"fecha":"6/5/2021","hora":"09:00"}
-
-      var payload = new
-      {
-        idCuadro = 4,
-        idRecurso = $"{(int)court}",
-        idmodalidad = 3,
-        fecha = $"{date.Day}/{date.Month}/{date.Year}",
-        hora = $"{date.Hour:D2}:{date.Minute:D2}"
-      };
-
-      var consoleService = App.Kernel.Get<IConsoleOutputService>();
       if (!silent)
       {
-        consoleService.WriteStartAction("Retrieve time slot info");
+        _consoleService.WriteStartAction("Retrieve time slot info");
       }
 
-      var client = new RestClient(AppConstants.Host);
-      var request = new RestRequest(AppConstants.ObtainTimeSlotInformationUrl, DataFormat.Json);
-      request.AddJsonBody(payload);
-      var response = client.Post(request);
-
-      if (response.StatusCode != HttpStatusCode.OK)
+      var timeslotsJson = PostRequest(date, court, silent);
+      if (null == timeslotsJson)
       {
-        if (!silent)
-        {
-          consoleService.WriteError($"Failed to retrieve time slot information. {response.StatusCode}");
-        }
-
         return null;
       }
 
-      dynamic test = JsonConvert.DeserializeObject(response.Content);
-      var test2 = test.d.Opciones;
-
       var timeSlots = new List<TimeSlotInfo>();
 
-      foreach (var timeSlotJson in test.d.Opciones)
+      foreach (var timeSlotJson in timeslotsJson)
       {
         var timeSlot = new TimeSlotInfo
         {
@@ -68,12 +43,12 @@ namespace PadelCourtBooker.App.Core
       {
         if (timeSlots.Count == 0)
         {
-          consoleService.WriteError(
+          _consoleService.WriteError(
             $"{courtStr} is not available on {date.ToLongDateString()} at {date.Hour:D2}:{date.Minute:D2}. :-(");
         }
         else
         {
-          consoleService.WriteSuccess($"{courtStr} is available. :-)");
+          _consoleService.WriteSuccess($"{courtStr} is available. :-)");
         }
       }
 
