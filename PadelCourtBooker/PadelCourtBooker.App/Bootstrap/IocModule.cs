@@ -11,6 +11,7 @@ namespace PadelCourtBooker.App.Bootstrap
       Bind<ICredentialService>().To<CredentialService>().InSingletonScope();
       Bind<IBookingSessionService>().To<BookingSessionService>().InSingletonScope();
       Bind<IConsoleOutputService>().To<ConsoleOutputService>().InSingletonScope();
+      Bind<ICloudLoggingService>().To<LogglyLoggingService>().InSingletonScope();
     }
   }
 }

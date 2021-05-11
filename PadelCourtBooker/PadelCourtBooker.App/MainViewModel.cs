@@ -145,6 +145,8 @@ namespace PadelCourtBooker.App
       set { _shutDownComputer = value; RaisePropertyChanged();}
     }
 
+    public bool DelayedBookingNotInProgress => _delayedBookingTimer == null;
+
     #endregion
 
     #region Commands
@@ -318,6 +320,7 @@ namespace PadelCourtBooker.App
         DelayedBookingCountDown = string.Empty;
 
         _consoleService.WriteWarning("Delayed booking canceled");
+        RaisePropertyChanged(nameof(DelayedBookingNotInProgress));
       }
       _delayedBookingInfo.Busy = false;
     }
@@ -358,7 +361,7 @@ namespace PadelCourtBooker.App
         IsEnabled = true
       };
       _delayedBookingTimer.Tick += _delayedBookingTimer_Tick;
-
+      RaisePropertyChanged(nameof(DelayedBookingNotInProgress));
     }
 
     private void _delayedBookingTimer_Tick(object sender, EventArgs e)
@@ -383,6 +386,7 @@ namespace PadelCourtBooker.App
           {
             _delayedBookingTimer.Stop();
             _delayedBookingTimer = null;
+            RaisePropertyChanged(nameof(DelayedBookingNotInProgress));
 
             if (ShutDownComputer)
             {
@@ -467,6 +471,20 @@ namespace PadelCourtBooker.App
         return false;
       }
 
+      if (instantBooking)
+      {
+        foreach (var timeSlot in AvailableTimeSlots)
+        {
+          var bookAction2 = new BookAction();
+          if (bookAction2.Execute(timeSlot.TimeSlotInfo))
+          {
+            return true;
+          }
+        }
+
+        return false;
+      }
+
       var preferredCourt = AvailableTimeSlots.FirstOrDefault();
       if (null == preferredCourt)
       {
@@ -474,25 +492,19 @@ namespace PadelCourtBooker.App
       }
 
       var bookAction = new BookAction();
-      if (!instantBooking)
-      {
-        bookAction.Silent = true;
-      }
+      bookAction.Silent = true;
 
       if (bookAction.Execute(preferredCourt.TimeSlotInfo))
       {
         return true;
       }
 
-      if (!instantBooking)
+      // check if the court is still available
+      var checkAvailabilityAction = new CheckCourtAvailabilityAction();
+      if (!checkAvailabilityAction.Execute(preferredCourt.BookingTime, preferredCourt.TimeSlotInfo.Court, true))
       {
-        // check if the court is still available
-        var checkAvailabilityAction = new CheckCourtAvailabilityAction();
-        if (!checkAvailabilityAction.Execute(preferredCourt.BookingTime, preferredCourt.TimeSlotInfo.Court, true))
-        {
-          // if court is not available, then stop trying this timeslot
-          AvailableTimeSlots.RemoveAt(0);
-        }
+        // if court is not available, then stop trying this timeslot
+        AvailableTimeSlots.RemoveAt(0);
       }
 
       return false;

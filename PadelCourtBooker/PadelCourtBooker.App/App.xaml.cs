@@ -20,6 +20,8 @@ namespace PadelCourtBooker.App
 
       // load credentials
       Kernel.Get<ICredentialService>().LoadCredentials();
+
+      Kernel.Get<ICloudLoggingService>().Initialize();
     }
     public static IKernel Kernel { get; private set; }
   }

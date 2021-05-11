@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Net;
 using Ninject;
 using PadelCourtBooker.App.Services;
@@ -61,6 +62,8 @@ namespace PadelCourtBooker.App.Core
         if (locationHeader != null && locationHeader.Value != null && locationHeader.Value.ToString().StartsWith(AppConstants.BookingConfirmationUrl))
         {
           _consoleService.WriteSuccess("Court booked.");
+          var logger = App.Kernel.Get<ICloudLoggingService>();
+          logger.Log($"{AppUtilities.GetDescriptionFor(timeSlot.Court)} booked", DateTime.Now.ToLongTimeString());
           return true;
         }
       }

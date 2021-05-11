@@ -54,7 +54,8 @@
 
         </Grid.RowDefinitions>
 
-        <GroupBox Grid.Row="0" Header="Booking Info" Margin="5" x:Name="BookingInfoGroupBox">
+        <GroupBox Grid.Row="0" Header="Booking Info" Margin="5" x:Name="BookingInfoGroupBox"
+                  IsEnabled="{Binding DelayedBookingNotInProgress}">
           <Grid>
             <Grid.ColumnDefinitions>
               <ColumnDefinition Width="150"/>
@@ -92,7 +93,7 @@
         </GroupBox>
 
         <GroupBox Grid.Row="0" Grid.Column="1" Header="Court availability" Margin="5"
-                  VerticalContentAlignment="Stretch">
+                  VerticalContentAlignment="Stretch" IsEnabled="{Binding DelayedBookingNotInProgress}">
           <Grid>
             <Grid.ColumnDefinitions>
               <ColumnDefinition Width="*"/>
@@ -138,7 +139,7 @@
 
       </Grid>
 
-      <GroupBox Grid.Row="1" Header="Book Court" Margin="5">
+      <GroupBox Grid.Row="1" Header="Book Court" Margin="5" IsEnabled="{Binding DelayedBookingNotInProgress}">
           <Grid>
             <Grid.RowDefinitions>
               <RowDefinition Height="Auto"/>
@@ -179,7 +180,7 @@
 
               <Label>Time:</Label>
               <!-- Delayed booking time -->
-              <Grid Grid.Column="1" HorizontalAlignment="Left" Height="25" VerticalAlignment="Top" Margin="5">
+              <Grid Grid.Column="1" HorizontalAlignment="Left" Height="25" VerticalAlignment="Top" Margin="5" IsEnabled="{Binding DelayedBookingNotInProgress}">
                 <Grid.ColumnDefinitions>
                   <ColumnDefinition Width="*"/>
                   <ColumnDefinition Width="Auto"/>

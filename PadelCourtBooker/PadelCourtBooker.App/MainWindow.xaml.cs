@@ -1,7 +1,11 @@
 ﻿using System;
 using System.Reflection;
 using System.Windows;
+using Loggly;
+using Loggly.Config;
 using Ninject;
+using Ninject.Activation;
+using PadelCourtBooker.App.Core;
 using PadelCourtBooker.App.Services;
 
 
@@ -19,6 +23,8 @@ namespace PadelCourtBooker.App
       DataContext = new MainViewModel();
 
       this.BookingDatePicker.Minimum = DateTime.Today;
+
+     
     }
 
     private void Window_Loaded(object sender, RoutedEventArgs e)

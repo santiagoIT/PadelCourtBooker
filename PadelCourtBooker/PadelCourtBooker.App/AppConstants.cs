@@ -20,5 +20,7 @@
     public const string BookCourtUrl = "Booking/Info.aspx";
     public const string LoginUrl = "Login.aspx";
     public const string BookingConfirmationUrl = "/Booking/Confirmacion.aspx";
+
+    public static string LogglyCustomerToken = "2c869ad3-64ed-4c0a-9bcc-0f9e396964b0";
   }
 }
