@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows;
@@ -168,11 +169,14 @@ namespace PadelCourtBooker.App
     public ICommand CmdMoveUp { get; private set; }
     public ICommand CmdMoveDown { get; private set; }
 
+    public ICommand CmdLaunchQPadelReservationsPage { get; private set; }
+
     private void RegisterCommands()
     {
       CmdGetTimeSlotInfo = new RelayCommand(() => CmdGetTimeSlotInfoExecute());
       CmdEnterCredentials = new RelayCommand(() => CmdEnterCredentialsExecute());
       CmdLogin = new RelayCommand(() => CmdLoginExecute());
+      CmdLaunchQPadelReservationsPage = new RelayCommand(() => CmdLaunchQPadelReservationsPageExecute());
       CmdBookCourt = new RelayCommand(() => CmdBookCourtExecute(), () => AvailableTimeSlots.Count > 0);
       CmdCancelDelayedBooking = new RelayCommand(() => CmdCancelDelayedBookingExecute(), () => _delayedBookingTimer != null);
 
@@ -187,6 +191,17 @@ namespace PadelCourtBooker.App
       {
         return SelectedTimeSlot != null && AvailableTimeSlots.Last() != SelectedTimeSlot;
       });
+    }
+
+    private void CmdLaunchQPadelReservationsPageExecute()
+    {
+      using (var proc = new Process())
+      {
+        proc.StartInfo.FileName = AppConstants.ReservationsPageUrl;
+        proc.StartInfo.UseShellExecute = true;
+        proc.StartInfo.Verb = "open";
+        proc.Start();
+      }
     }
 
     private void CmdMoveDownExecute()

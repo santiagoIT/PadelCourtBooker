@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Net;
 using Ninject;
 using PadelCourtBooker.App.Services;
@@ -11,17 +12,26 @@ namespace PadelCourtBooker.App.Core
     public bool Execute(bool forceLogin)
     {
       var bookingSessionService = App.Kernel.Get<IBookingSessionService>();
-      
+      var consoleService = App.Kernel.Get<IConsoleOutputService>();
+
       // check if session is still valid
       if (!forceLogin && bookingSessionService.SessionStillValid())
       {
         return true;
       }
 
-      var consoleService = App.Kernel.Get<IConsoleOutputService>();
+      var credentialService = App.Kernel.Get<ICredentialService>();
+      if (string.IsNullOrWhiteSpace(credentialService.UserName) ||
+          string.IsNullOrWhiteSpace(credentialService.Password))
+      {
+        consoleService.WriteError("Credentials have not yet been defined. Unable to proceed.");
+        return false;
+      }
+
+      
       consoleService.WriteStartAction("User authentication");
 
-      var credentialService = App.Kernel.Get<ICredentialService>();
+
       bookingSessionService.Reset();
 
       var client = new RestClient(AppConstants.Host);
