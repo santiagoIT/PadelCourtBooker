@@ -10,9 +10,11 @@ namespace PadelCourtBooker.App.Core
   class BookAction : IBookAction
   {
     private IConsoleOutputService _consoleService;
+    private IPushNotificationService _pushNotificationService;
     public BookAction()
     {
       _consoleService = App.Kernel.Get<IConsoleOutputService>();
+      _pushNotificationService = App.Kernel.Get<IPushNotificationService>();
     }
 
     public bool Silent { get; set; }
@@ -61,9 +63,13 @@ namespace PadelCourtBooker.App.Core
         var locationHeader = response.Headers.FirstOrDefault(x => x.Name == AppConstants.LocationHeader);
         if (locationHeader != null && locationHeader.Value != null && locationHeader.Value.ToString().StartsWith(AppConstants.BookingConfirmationUrl))
         {
+          var courtName = AppUtilities.GetDescriptionFor(timeSlot.Court);
+          var msg = $"{courtName} booked. {timeSlot.Time.ToLongDateString()}. {timeSlot.Time.ToShortTimeString()}";
+
+          _pushNotificationService.SendNotification(msg);
           _consoleService.WriteSuccess("Court booked.");
           var logger = App.Kernel.Get<ICloudLoggingService>();
-          logger.Log($"{AppUtilities.GetDescriptionFor(timeSlot.Court)} booked", DateTime.Now.ToLongTimeString());
+          logger.Log(msg, DateTime.Now.ToLongTimeString());
           return true;
         }
       }

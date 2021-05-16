@@ -170,6 +170,8 @@ namespace PadelCourtBooker.App
     public ICommand CmdMoveDown { get; private set; }
 
     public ICommand CmdLaunchQPadelReservationsPage { get; private set; }
+    
+    public ICommand CmdTestPushNotification { get; private set; }
 
     private void RegisterCommands()
     {
@@ -183,6 +185,8 @@ namespace PadelCourtBooker.App
       CmdClearConsole = new RelayCommand(() => CmdClearConsoleExecute());
       CmdCopyConsoleToClipboard = new RelayCommand(() => CmdCopyConsoleToClipboardExecute());
 
+      CmdTestPushNotification = new RelayCommand(() => CmdTestPushNotificationExecute());
+
       CmdMoveUp = new RelayCommand(() => CmdMoveUpExecute(), () =>
       {
         return SelectedTimeSlot != null && AvailableTimeSlots.IndexOf(SelectedTimeSlot) > 0;
@@ -191,6 +195,12 @@ namespace PadelCourtBooker.App
       {
         return SelectedTimeSlot != null && AvailableTimeSlots.Last() != SelectedTimeSlot;
       });
+    }
+
+    private void CmdTestPushNotificationExecute()
+    {
+      var pushService = App.Kernel.Get<IPushNotificationService>();
+      pushService.SendNotification("This is just a test message");
     }
 
     private void CmdLaunchQPadelReservationsPageExecute()

@@ -36,6 +36,10 @@
       <MenuItem Header="Tools">
         <MenuItem Header="Q-Padel reservations" Command="{Binding CmdLaunchQPadelReservationsPage}"></MenuItem>
       </MenuItem>
+
+      <MenuItem Header="Developer">
+        <MenuItem Header="Test Push Notification" Command="{Binding CmdTestPushNotification}"></MenuItem>
+      </MenuItem>
     </Menu>
 
     <Grid>

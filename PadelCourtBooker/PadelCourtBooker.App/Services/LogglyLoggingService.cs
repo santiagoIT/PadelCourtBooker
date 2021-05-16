@@ -14,11 +14,13 @@ namespace PadelCourtBooker.App.Services
     private ICredentialService _credentialService;
     public void Initialize()
     {
+      var appDataService = App.Kernel.Get<IAppDataService>();
+
       _credentialService = App.Kernel.Get<ICredentialService>();
       var config = LogglyConfig.Instance;
-      config.CustomerToken = AppConstants.LogglyCustomerToken;
+      config.CustomerToken = appDataService.Data.LogglyCustomerToken;
       config.ApplicationName = $"QPadel-Booker";
-      config.Transport.EndpointHostname = "logs-01.loggly.com";
+      config.Transport.EndpointHostname = appDataService.Data.LogglyEndpointHostname;
       config.Transport.EndpointPort = 443;
       config.Transport.LogTransport = LogTransport.Https;
 

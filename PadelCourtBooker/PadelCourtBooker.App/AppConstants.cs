@@ -21,7 +21,5 @@
     public const string LoginUrl = "Login.aspx";
     public const string BookingConfirmationUrl = "/Booking/Confirmacion.aspx";
     public const string ReservationsPageUrl = @"https://www.quitopadel.com/Booking/Grid.aspx?id=4";
-
-    public static string LogglyCustomerToken = "2c869ad3-64ed-4c0a-9bcc-0f9e396964b0";
   }
 }

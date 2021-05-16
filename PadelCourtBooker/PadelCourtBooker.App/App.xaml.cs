@@ -24,6 +24,7 @@ namespace PadelCourtBooker.App
       // load credentials
       Kernel.Get<ICredentialService>().LoadCredentials();
 
+      Kernel.Get<IAppDataService>().Initialize();
       Kernel.Get<ICloudLoggingService>().Initialize();
 
       RegisterGlobalExceptionHandling();
@@ -77,7 +78,7 @@ namespace PadelCourtBooker.App
       MessageBox.Show(message, "Error", MessageBoxButton.OK, MessageBoxImage.Error);
     }
 
-    private static void LogException(Exception e)
+    public static void LogException(Exception e)
     {
       try
       {

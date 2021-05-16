@@ -31,7 +31,8 @@ namespace PadelCourtBooker.App.Core
         {
           Token = timeSlotJson.Token,
           Description = timeSlotJson.Descripcion,
-          Court = court
+          Court = court,
+          Time = date
         };
 
         timeSlots.Add(timeSlot);
