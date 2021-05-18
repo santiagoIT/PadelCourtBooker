@@ -21,5 +21,6 @@
     public const string LoginUrl = "Login.aspx";
     public const string BookingConfirmationUrl = "/Booking/Confirmacion.aspx";
     public const string ReservationsPageUrl = @"https://www.quitopadel.com/Booking/Grid.aspx?id=4";
+    public const string SourceCodeRepoUrl = @"https://github.com/santiagoIT/PadelCourtBooker";
   }
 }

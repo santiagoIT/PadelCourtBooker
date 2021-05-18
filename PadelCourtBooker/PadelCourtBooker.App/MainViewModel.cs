@@ -170,7 +170,9 @@ namespace PadelCourtBooker.App
     public ICommand CmdMoveDown { get; private set; }
 
     public ICommand CmdLaunchQPadelReservationsPage { get; private set; }
-    
+
+    public ICommand CmdLaunchGitHubPage { get; private set; }
+
     public ICommand CmdTestPushNotification { get; private set; }
 
     private void RegisterCommands()
@@ -179,6 +181,7 @@ namespace PadelCourtBooker.App
       CmdEnterCredentials = new RelayCommand(() => CmdEnterCredentialsExecute());
       CmdLogin = new RelayCommand(() => CmdLoginExecute());
       CmdLaunchQPadelReservationsPage = new RelayCommand(() => CmdLaunchQPadelReservationsPageExecute());
+      CmdLaunchGitHubPage = new RelayCommand(() => CmdLaunchGitHubPageExecute());
       CmdBookCourt = new RelayCommand(() => CmdBookCourtExecute(), () => AvailableTimeSlots.Count > 0);
       CmdCancelDelayedBooking = new RelayCommand(() => CmdCancelDelayedBookingExecute(), () => _delayedBookingTimer != null);
 
@@ -205,13 +208,12 @@ namespace PadelCourtBooker.App
 
     private void CmdLaunchQPadelReservationsPageExecute()
     {
-      using (var proc = new Process())
-      {
-        proc.StartInfo.FileName = AppConstants.ReservationsPageUrl;
-        proc.StartInfo.UseShellExecute = true;
-        proc.StartInfo.Verb = "open";
-        proc.Start();
-      }
+      AppUtilities.OpenBrowser(AppConstants.ReservationsPageUrl);
+    }
+    
+    private void CmdLaunchGitHubPageExecute()
+    {
+      AppUtilities.OpenBrowser(AppConstants.SourceCodeRepoUrl);
     }
 
     private void CmdMoveDownExecute()

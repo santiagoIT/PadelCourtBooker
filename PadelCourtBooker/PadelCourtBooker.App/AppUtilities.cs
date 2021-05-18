@@ -25,5 +25,16 @@ namespace PadelCourtBooker.App
     {
       Process.Start("shutdown", "/s /t 0");
     }
+
+    public static void OpenBrowser(string url)
+    {
+      using (var proc = new Process())
+      {
+        proc.StartInfo.FileName = url;
+        proc.StartInfo.UseShellExecute = true;
+        proc.StartInfo.Verb = "open";
+        proc.Start();
+      }
+    }
   }
 }

@@ -34,6 +34,8 @@
         <MenuItem Header="Credentials" Command="{Binding CmdEnterCredentials}"></MenuItem>
       </MenuItem>
       <MenuItem Header="Tools">
+        <MenuItem Header="Project site" Command="{Binding CmdLaunchGitHubPage}"></MenuItem>
+        <Separator/>
         <MenuItem Header="Q-Padel reservations" Command="{Binding CmdLaunchQPadelReservationsPage}"></MenuItem>
       </MenuItem>
 

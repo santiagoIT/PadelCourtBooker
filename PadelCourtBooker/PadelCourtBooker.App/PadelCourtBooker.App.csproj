@@ -6,7 +6,7 @@
     <UseWPF>true</UseWPF>
     <Company>Information Technlogies itWORKS</Company>
     <Authors>sb</Authors>
-    <Version>1.0.0</Version>
+    <Version>1.0.1</Version>
     <AssemblyName>PadelCourtBooker.App</AssemblyName>
   </PropertyGroup>
 
