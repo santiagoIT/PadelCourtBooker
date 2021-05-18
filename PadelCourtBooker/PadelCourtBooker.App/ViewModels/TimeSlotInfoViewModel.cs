@@ -18,7 +18,6 @@ namespace PadelCourtBooker.App.ViewModels
       _parent = parent;
       _parentList = _parent.AvailableTimeSlots;
       
-
       RegisterCommands();
     }
 
@@ -29,6 +28,13 @@ namespace PadelCourtBooker.App.ViewModels
     public DateTime BookingTime { get; set; }
 
     public ICommand CmdDelete { get; private set; }
+
+    /// <summary>
+    /// Will attempt to book court with the highest priority in case multiple courts are
+    /// available
+    /// 0 = highest priority 
+    /// </summary>
+    public uint BookingPreferencePriority { get; set; }
 
     private void RegisterCommands()
     {

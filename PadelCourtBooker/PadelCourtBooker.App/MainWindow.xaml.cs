@@ -7,6 +7,7 @@ using Ninject;
 using Ninject.Activation;
 using PadelCourtBooker.App.Core;
 using PadelCourtBooker.App.Services;
+using PadelCourtBooker.App.ViewModels;
 
 
 namespace PadelCourtBooker.App

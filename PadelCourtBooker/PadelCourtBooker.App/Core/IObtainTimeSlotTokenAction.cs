@@ -5,6 +5,6 @@ namespace PadelCourtBooker.App.Core
 {
   interface IObtainTimeSlotTokenAction
   {
-    IList<TimeSlotInfo> Execute(DateTime date, PadelCourt court, bool silent);
+    IList<TimeSlotInfo> Execute(DateTime date, PadelCourt court);
   }
 }

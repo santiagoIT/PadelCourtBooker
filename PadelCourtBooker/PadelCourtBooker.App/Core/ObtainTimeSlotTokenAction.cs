@@ -1,29 +1,18 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Net;
-using Newtonsoft.Json;
-using Ninject;
-using PadelCourtBooker.App.Services;
-using RestSharp;
 
 namespace PadelCourtBooker.App.Core
 {
   public class ObtainTimeSlotTokenAction : TimeSlotActionBase, IObtainTimeSlotTokenAction
   {
-    public IList<TimeSlotInfo> Execute(DateTime date, PadelCourt court, bool silent)
+    public IList<TimeSlotInfo> Execute(DateTime date, PadelCourt court)
     {
-      if (!silent)
-      {
-        _consoleService.WriteStartAction("Retrieve time slot info");
-      }
-
-      var timeslotsJson = PostRequest(date, court, silent);
+      var timeSlots = new List<TimeSlotInfo>();
+      var timeslotsJson = PostRequest(date, court, false);
       if (null == timeslotsJson)
       {
-        return null;
+        return timeSlots;
       }
-
-      var timeSlots = new List<TimeSlotInfo>();
 
       foreach (var timeSlotJson in timeslotsJson)
       {
@@ -36,21 +25,6 @@ namespace PadelCourtBooker.App.Core
         };
 
         timeSlots.Add(timeSlot);
-      }
-
-      var courtStr = AppUtilities.GetDescriptionFor(court);
-
-      if (!silent)
-      {
-        if (timeSlots.Count == 0)
-        {
-          _consoleService.WriteError(
-            $"{courtStr} is not available on {date.ToLongDateString()} at {date.Hour:D2}:{date.Minute:D2}. :-(");
-        }
-        else
-        {
-          _consoleService.WriteSuccess($"{courtStr} is available. :-)");
-        }
       }
 
       return timeSlots;
