@@ -275,9 +275,24 @@ namespace PadelCourtBooker.App.ViewModels
         return true;
       }
 
-      // check if the court is still available
-      var checkAvailabilityAction = new CheckCourtAvailabilityAction();
-      if (!checkAvailabilityAction.Execute(preferredCourt.BookingTime, preferredCourt.TimeSlotInfo.Court, true))
+      var removeTimeSlot = false;
+
+      if (!bookAction.TimeSlotAvailable)
+      {
+        removeTimeSlot = true;
+      }
+      else
+      {
+        // check if the court is still available
+        var checkAvailabilityAction = new CheckCourtAvailabilityAction();
+        if (!checkAvailabilityAction.Execute(preferredCourt.BookingTime, preferredCourt.TimeSlotInfo.Court, true))
+        {
+          // if court is not available, then stop trying this timeslot
+          removeTimeSlot = true;
+        }
+      }
+
+      if (removeTimeSlot)
       {
         // if court is not available, then stop trying this timeslot
         AvailableTimeSlots.RemoveAt(0);

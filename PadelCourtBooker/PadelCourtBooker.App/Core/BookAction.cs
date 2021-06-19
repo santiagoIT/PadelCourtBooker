@@ -19,8 +19,11 @@ namespace PadelCourtBooker.App.Core
 
     public bool Silent { get; set; }
 
+    public bool TimeSlotAvailable { get; private set; }
+
     public bool Execute(TimeSlotInfo timeSlot)
     {
+      TimeSlotAvailable = true;
       if (!Silent)
       {
         _consoleService.WriteStartAction("Booking court");
@@ -72,6 +75,21 @@ namespace PadelCourtBooker.App.Core
           logger.Log(msg, DateTime.Now.ToLongTimeString());
           return true;
         }
+      }
+
+      // the matchpoint software has a bug.
+      // it will provide a token for a timeslot that is actually not bookable.
+      // Non-bookable timeslots should not be assigned any tokens.
+      // For example, if court 2 is booked from 7h30 to 8h30 and you check availability at
+      // 8h00 am, matchpoint will provide a token (it should not!!!), making it seem as if the court is bookable!
+      // we can tell that the court is not bookable if the response contains a submit button with the name:
+      // ctl00$ContentPlaceHolderContenido$ButtonModificarJugadoresAdicionales
+
+      if (response.Content.IndexOf("ctl00$ContentPlaceHolderContenido$ButtonModificarJugadoresAdicionales") > 0)
+      {
+        var courtName = AppUtilities.GetDescriptionFor(timeSlot.Court);
+        _consoleService.WriteWarning($"{courtName} is not bookable at {timeSlot.Time.ToShortTimeString()}. Matchpoint bug. Earlier overlapping timeslot already taken.");
+        TimeSlotAvailable = false;
       }
 
       if (!Silent)

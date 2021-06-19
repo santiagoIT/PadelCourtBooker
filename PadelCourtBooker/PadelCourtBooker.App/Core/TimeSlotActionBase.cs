@@ -28,7 +28,7 @@ namespace PadelCourtBooker.App.Core
       {
         idCuadro = 4,
         idRecurso = $"{(int)court}",
-        idmodalidad = 3,
+        idmodalidad = 8,
         fecha = $"{date.Day}/{date.Month}/{date.Year}",
         hora = $"{date.Hour:D2}:{date.Minute:D2}"
       };
