@@ -27,6 +27,7 @@ namespace PadelCourtBooker.App.ViewModels
     private bool _shutDownComputer;
     private DelayedBookingInfo _delayedBookingInfo;
     private int _gameDuration = 90;
+    private IPushNotificationService _pushNotificationService;
 
     public MainViewModel()
     {
@@ -50,6 +51,7 @@ namespace PadelCourtBooker.App.ViewModels
       BookingMinutes = 0;
 
       _consoleService = App.Kernel.Get<IConsoleOutputService>();
+      _pushNotificationService = App.Kernel.Get<IPushNotificationService>();
 
       ShutDownComputer = true;
 #if DEBUG
@@ -181,7 +183,6 @@ namespace PadelCourtBooker.App.ViewModels
         {
           _delayedBookingInfo.Busy = false;
         }
-       
 
         // booking was not successful, try again!
         _delayedBookingInfo.Attempts++;
@@ -190,8 +191,20 @@ namespace PadelCourtBooker.App.ViewModels
         var retryTimeSpan = DateTime.Now - _delayedBookingTime;
         if (retryTimeSpan.TotalMinutes >= 15)
         {
-          _consoleService.WriteError("Failed to book court. Giving up after 15 minutes. Sorry...");
+          var msg = "Failed to book court. Giving up after 15 minutes. Sorry...";
+          _pushNotificationService.SendNotification(msg);
+          _consoleService.WriteError(msg);
           _delayedBookingTimer.Stop();
+          _delayedBookingTimer = null;
+        }
+
+        // no courts available
+        if  (AvailableTimeSlots.Count == 0)
+        {
+          var msg = "No courts available. Giving up. Sorry...";
+          _consoleService.WriteError(msg);
+          _pushNotificationService.SendNotification(msg);
+          _delayedBookingTimer?.Stop();
           _delayedBookingTimer = null;
         }
 
